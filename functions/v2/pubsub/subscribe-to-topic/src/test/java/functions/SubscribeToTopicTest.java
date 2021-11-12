@@ -43,7 +43,7 @@ public class SubscribeToTopicTest {
   public void functionsPubsubSubscribe_shouldPrintPubsubMessage() throws Exception {
     String msg = "Hello World";
     String encodedMessage = Base64.getEncoder().encodeToString(msg.getBytes());
-    String encodedData = new String("{\"message\": { \"data\": \"" + encodedMessage + "\"} }");
+    String encodedData = new String("{\"name\": \"test-log\", { \"data\": \"" + encodedMessage + "\"} }");
 
     CloudEvent event =
         CloudEventBuilder.v1()

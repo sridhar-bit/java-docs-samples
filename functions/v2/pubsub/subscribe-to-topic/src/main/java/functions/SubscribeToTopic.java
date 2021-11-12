@@ -16,10 +16,10 @@
 
 package functions;
 
-// [START functions_cloudevent_pubsub]
+// [START functions_log_cloudevent]
 import com.google.cloud.functions.CloudEventsFunction;
 import com.google.gson.Gson;
-import functions.eventpojos.PubSubBody;
+import com.google.gson.JsonObject;
 import io.cloudevents.CloudEvent;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -31,18 +31,39 @@ public class SubscribeToTopic implements CloudEventsFunction {
   @Override
   public void accept(CloudEvent event) {
     logger.info("Event: " + event.getId());
+    logger.info("Event Attribute Names: " + event.getAttributeNames().toString());
+    //    console.log('API method:', cloudevent.methodname);
     logger.info("Event Type: " + event.getType());
+    logger.info("Event Subject: " + event.getSubject());
 
     if (event.getData() != null) {
       String cloudEventData = new String(event.getData().toBytes(), StandardCharsets.UTF_8);
+
       Gson gson = new Gson();
-      PubSubBody body = gson.fromJson(cloudEventData, PubSubBody.class);
-      // Retrieve PubSub message data
-      String encodedData = body.getMessage().getData();
-      String decodedData =
-          new String(Base64.getDecoder().decode(encodedData), StandardCharsets.UTF_8);
-      logger.info("Event data: " + decodedData);
+      JsonObject eventData = gson.fromJson(cloudEventData, JsonObject.class);
+      System.out.println(gson.toJson(eventData));
+      //      console.log('Resource name:', payload.resourceName);
+
+//       Retrieve PubSub message data
+//      String encodedData = body.getMessage().getData();
+//      String decodedData =
+//              new String(Base64.getDecoder().decode(encodedData), StandardCharsets.UTF_8);
+//      logger.info("Event data: " + decodedData);
     }
+
+//    // Print out details from the Cloud Audit Logging entry
+//    }
+//
+//  const request = payload.request;
+//    if (request) {
+//      console.log('Request type:', request['@type']);
+//    }
+//
+//  const metadata = payload && payload.requestMetadata;
+//    if (metadata) {
+//      console.log('Caller IP:', metadata.callerIp);
+//      console.log('User agent:', metadata.callerSuppliedUserAgent);
+//    }
   }
 }
-// [END functions_cloudevent_pubsub]
+// [END functions_log_cloudevent]
