@@ -19,6 +19,8 @@ package functions;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.testing.TestLogHandler;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import io.cloudevents.CloudEvent;
 import io.cloudevents.core.builder.CloudEventBuilder;
 import java.net.URI;
@@ -41,21 +43,36 @@ public class SubscribeToTopicTest {
 
   @Test
   public void functionsPubsubSubscribe_shouldPrintPubsubMessage() throws Exception {
-    String msg = "Hello World";
-    String encodedMessage = Base64.getEncoder().encodeToString(msg.getBytes());
-    String encodedData = new String("{\"name\": \"test-log\", { \"data\": \"" + encodedMessage + "\"} }");
+    JsonObject request = new JsonObject();
+    request.addProperty("@type", "TestType");
+
+    JsonObject protoPayload = new JsonObject();
+    protoPayload.add("request", request);
+
+    JsonObject metadata = new JsonObject();
+    metadata.addProperty("callerIp", "0.0.0.0");
+    metadata.addProperty("callerSuppliedUserAgent", "nobody");
+
+    protoPayload.add("requestMetadata", metadata);
+    protoPayload.addProperty("resourceName", "test resource");
+
+    JsonObject encodedData = new JsonObject();
+    encodedData.add("protoPayload", protoPayload);
+    encodedData.addProperty("name", "test name");
+
 
     CloudEvent event =
         CloudEventBuilder.v1()
             .withId("0")
-            .withType("pubsub.message")
+            .withSubject("test subject")
+            .withType("google.cloud.audit.log.v1.written")
             .withSource(URI.create("https://example.com"))
-            .withData(encodedData.getBytes())
+            .withData(new Gson().toJson(encodedData).getBytes())
             .build();
 
     new SubscribeToTopic().accept(event);
 
-    assertThat("Event data: " + msg).isEqualTo(
-        logHandler.getStoredLogRecords().get(2).getMessage());
+    assertThat("Event: " + event.getId()).isEqualTo(
+        logHandler.getStoredLogRecords().get(0).getMessage());
   }
 }
